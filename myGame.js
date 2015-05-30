@@ -1,7 +1,7 @@
 (function() {
     var canvas = document.getElementById('canvas');
     canvas.width = 320;
-    canvas.height = 200;
+    canvas.height = 420;
     var gamePaused = false,
         score = 0,
         longpress = 0.9,
@@ -88,8 +88,8 @@
                 }
                 if (enemy.x < 0) {
                     score++;
-                    allSpriteArray.remove(enemy);
-                    allEnemyArray.remove(enemy);
+                    removeFromArray(enemy, allSpriteArray);
+                    removeFromArray(enemy, allEnemyArray);
                 }
             }
         },
@@ -108,8 +108,9 @@
             allEnemyArray.push(enemy);
             allSpriteArray.push(enemy);
 
-            if (!gamePaused)
+            if (!gamePaused) {
                 enemyTimer = setTimeout(makeEnemy, (1000 * Math.random()) + 200);
+            }
         },
         createSprite = function(sprite) {
             ctx.fillStyle = sprite.color;
@@ -124,6 +125,10 @@
                 }
                 ctx.font = "10px Arial";
                 ctx.fillText("Score :" + score + " : Hi : " + hiscore, 10, 50);
+            }else{
+                ctx.font = "10px Arial";
+                ctx.fillText("GameOver Press spacebar or", 100, 50);
+                ctx.fillText("Mouse-click to restart", 100, 70);
             }
         },
         run = function() {
@@ -139,13 +144,23 @@
             allSpriteArray.push(myPlateform);
             allSpriteArray.push(mySprite);
             makeEnemy();
-            hiscore = score;
+            if (score > hiscore) {
+                hiscore = score;
+            }
             score = 0;
             jumpVal = 2;
             gameTimer = setInterval(run, 10);
+        },
+        removeFromArray = function(obj, arr) {
+            return arr.splice(arr.indexOf(obj), 1);
         };
     window.addEventListener('keydown', function(e) {
-        keysDown[e.keyCode] = true;
+        if (gamePaused && (e.keyCode === 32)) {
+            gamePaused = false;
+            initMyGame();
+        } else {
+            keysDown[e.keyCode] = true;
+        }
     });
     window.addEventListener('mousedown', function() {
         if (gamePaused) {
@@ -165,8 +180,5 @@
         longJump = false;
         delete keysDown[e.keyCode];
     });
-    Array.prototype.remove = function(obj) {
-        return this.splice(this.indexOf(obj), 1);
-    };
     initMyGame();
 })();
