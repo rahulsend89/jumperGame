@@ -4,6 +4,8 @@
     canvas.height = 420;
     var gamePaused = false,
         score = 0,
+        plateformConst = 30,
+        enemyHeightConst = 60,
         longpress = 0.9,
         longJump = false,
         hiscore = 0,
@@ -18,13 +20,34 @@
         mySprite = {
             x: 20,
             y: 20,
+            scale: 1.0,
+            anchorpoint: 0.0,
             width: 10,
             height: 10,
             speed: 0.5,
             color: '#c00',
             intersects: function(otherObject) {
-                return !(otherObject.x > (this.x + this.width) || (otherObject.x + otherObject.width) < this.x || otherObject.y > (this.y + this.height) || (otherObject.y + otherObject.height) < this.y);
-            }
+                return !(otherObject.x > (getRect(this).x + getRect(this).width) || (otherObject.x + otherObject.width) < getRect(this).x || otherObject.y > (getRect(this).y + getRect(this).height) || (otherObject.y + otherObject.height) < getRect(this).y);
+            },
+            groupSprite: [{
+                x: 2,
+                y: 2,
+                width: 2,
+                height: 2,
+                color: '#fcf'
+            }, {
+                x: 6,
+                y: 2,
+                width: 2,
+                height: 2,
+                color: '#fcf'
+            }, {
+                x: 3,
+                y: 6,
+                width: 4,
+                height: 2,
+                color: '#fcf'
+            }]
         },
         myBG = {
             x: 0,
@@ -35,9 +58,9 @@
         },
         myPlateform = {
             x: 0,
-            y: canvas.height - 10,
+            y: canvas.height - plateformConst,
             width: canvas.width,
-            height: 10,
+            height: plateformConst,
             color: '#222'
         },
         keysDown = {},
@@ -71,15 +94,16 @@
                 jump();
             }
             jumpVal += mySprite.speed;
-            if (jumpVal > 15) {
-                jumpVal = 15;
+            if (jumpVal > enemyHeightConst/5) {
+                jumpVal = enemyHeightConst/5;
             }
-            if ((mySprite.y + jumpVal) > canvas.height - 20) {
+            if ((getRect(mySprite).y + jumpVal) > canvas.height - getRect(mySprite).height - plateformConst) {
                 touching = true;
-                mySprite.y = canvas.height - 20;
+                mySprite.y = canvas.height - getRect(mySprite).height +(mySprite.y-getRect(mySprite).y)- plateformConst;
             } else if (!touching) {
                 mySprite.y += jumpVal;
             }
+            //mySprite.scale = mySprite.y/220;
             for (var i = allEnemyArray.length - 1; i >= 0; i--) {
                 var enemy = allEnemyArray[i];
                 enemy.x -= enemy.speed * mod;
@@ -95,10 +119,10 @@
         },
         makeEnemy = function() {
             var startXpos = canvas.width,
-                height = (Math.random() * 50) + 10,
+                height = (Math.random() * enemyHeightConst) + plateformConst,
                 enemy = {
                     x: startXpos,
-                    y: canvas.height - 10 - height,
+                    y: canvas.height - plateformConst - height,
                     width: 10,
                     height: height,
                     speed: 200,
@@ -114,18 +138,56 @@
         },
         createSprite = function(sprite) {
             ctx.fillStyle = sprite.color;
-            ctx.fillRect(sprite.x, sprite.y, sprite.width, sprite.height);
+            ctx.fillRect(getRect(sprite).x, getRect(sprite).y, getRect(sprite).width, getRect(sprite).height);
         },
+        groupSprite = function(parentSprite, sprite) {
+            ctx.fillStyle = sprite.color;
+            var scale = 1.0;
+            if (sprite.scale !== undefined) {
+                scale = sprite.scale;
+            } else {
+                sprite.scale = 1.0;
+            }
+            if (parentSprite.scale !== undefined) {
+                scale = parentSprite.scale * sprite.scale;
+            } else {
+                parentSprite.scale = 1.0;
+            }
+            ctx.fillRect(getRect(parentSprite).x + sprite.x * scale, getRect(parentSprite).y + sprite.y * scale, sprite.width * scale, sprite.height * scale);
+        },
+        getRect = function(sprite) {
+            var anchorpoint = 0.0,
+                scale = 1.0;
+            if (sprite.scale !== undefined) {
+                scale = sprite.scale;
+            }
+            if (sprite.anchorpoint !== undefined) {
+                anchorpoint = sprite.anchorpoint;
+            }
+            var width = sprite.width * scale,
+                height = sprite.height * scale;
+            return {
+                x: sprite.x + (((width/100) * anchorpoint))*100,
+                y: sprite.y - (((height/100) * anchorpoint))*100,
+                width: width,
+                height: height
+            };
+        },        
         render = function() {
             if (!gamePaused) {
                 var length = allSpriteArray.length,
                     i = 0;
                 for (i = 0; i < length; i++) {
                     createSprite(allSpriteArray[i]);
+                    if (allSpriteArray[i].groupSprite !== undefined) {
+                        for (var j = allSpriteArray[i].groupSprite.length - 1; j >= 0; j--) {
+                            groupSprite(allSpriteArray[i], allSpriteArray[i].groupSprite[j]);
+                        }
+                    }
                 }
                 ctx.font = "10px Arial";
                 ctx.fillText("Score :" + score + " : Hi : " + hiscore, 10, 50);
-            }else{
+            } else {
                 ctx.font = "10px Arial";
                 ctx.fillText("GameOver Press spacebar or", 100, 50);
                 ctx.fillText("Mouse-click to restart", 100, 70);
