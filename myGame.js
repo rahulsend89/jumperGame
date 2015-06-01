@@ -20,8 +20,14 @@
         mySprite = {
             x: 20,
             y: 20,
-            scale: 2.0,
-            anchorpoint: 1.0,
+            scale: {
+                x: 2.0,
+                y: 3.0
+            },
+            anchorpoint: {
+                x: 0.0,
+                y: 0.0
+            },
             width: 10,
             height: 10,
             speed: 0.5,
@@ -103,7 +109,6 @@
             } else if (!touching) {
                 mySprite.y += jumpVal;
             }
-            //mySprite.scale = mySprite.y/220;
             for (var i = allEnemyArray.length - 1; i >= 0; i--) {
                 var enemy = allEnemyArray[i];
                 enemy.x -= enemy.speed * mod;
@@ -119,7 +124,7 @@
         },
         makeEnemy = function() {
             var startXpos = canvas.width,
-                height = (Math.random() * enemyHeightConst)+10,
+                height = (Math.random() * enemyHeightConst) + 10,
                 enemy = {
                     x: startXpos,
                     y: canvas.height - plateformConst - height,
@@ -142,33 +147,51 @@
         },
         groupSprite = function(parentSprite, sprite) {
             ctx.fillStyle = sprite.color;
-            var scale = 1.0;
+            var scale = {
+                x: 1.0,
+                y: 1.0
+            };
             if (sprite.scale !== undefined) {
                 scale = sprite.scale;
             } else {
-                sprite.scale = 1.0;
+                sprite.scale = {
+                    x: 1.0,
+                    y: 1.0
+                };
             }
             if (parentSprite.scale !== undefined) {
-                scale = parentSprite.scale * sprite.scale;
+                scale = {
+                    x: parentSprite.scale.x * sprite.scale.x,
+                    y: parentSprite.scale.y * sprite.scale.y
+                };
             } else {
-                parentSprite.scale = 1.0;
+                parentSprite.scale = {
+                    x: 1.0,
+                    y: 1.0
+                };
             }
-            ctx.fillRect(getRect(parentSprite).x + sprite.x * scale, getRect(parentSprite).y + sprite.y * scale, sprite.width * scale, sprite.height * scale);
+            ctx.fillRect(parentSprite.x + sprite.x * scale.x, parentSprite.y + sprite.y * scale.y, sprite.width * scale.x, sprite.height * scale.y);
         },
         getRect = function(sprite) {
-            var anchorpoint = 0.0,
-                scale = 1.0;
+            var anchorpoint = {
+                    x: 0.0,
+                    y: 0.0
+                },
+                scale = {
+                    x: 1.0,
+                    y: 1.0
+                };
             if (sprite.scale !== undefined) {
                 scale = sprite.scale;
             }
             if (sprite.anchorpoint !== undefined) {
                 anchorpoint = sprite.anchorpoint;
             }
-            var width = sprite.width * scale,
-                height = sprite.height * scale;
+            var width = sprite.width * scale.x,
+                height = sprite.height * scale.y;
             return {
-                x: sprite.x + (((width) * anchorpoint)),
-                y: sprite.y - (((height) * anchorpoint)),
+                x: sprite.x + (((width) * anchorpoint.x)),
+                y: sprite.y - (((height) * anchorpoint.y)),
                 width: width,
                 height: height
             };
@@ -229,12 +252,10 @@
             longJump = false;
             moueDownVal = false;
         };
-    window.addEventListener('touchend', function() {
-        mouseUp();
-    });
-    window.addEventListener('touchstart', function() {
-        mouseDown();
-    });
+    window.addEventListener('touchend', mouseUp);
+    window.addEventListener('touchstart', mouseDown);
+    window.addEventListener('mousedown', mouseDown);
+    window.addEventListener('mouseup', mouseUp);
     window.addEventListener('keydown', function(e) {
         if (gamePaused && (e.keyCode === 32)) {
             gamePaused = false;
@@ -242,12 +263,6 @@
         } else {
             keysDown[e.keyCode] = true;
         }
-    });
-    window.addEventListener('mousedown', function() {
-        mouseDown();
-    });
-    window.addEventListener('mouseup', function() {
-        mouseUp();
     });
     window.addEventListener('keyup', function(e) {
         longpress = 1.0;
