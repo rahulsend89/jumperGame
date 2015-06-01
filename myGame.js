@@ -33,7 +33,7 @@
             speed: 0.5,
             color: '#c00',
             intersects: function(otherObject) {
-                return !(otherObject.x > (getRect(this).x + getRect(this).width) || (otherObject.x + otherObject.width) < getRect(this).x || otherObject.y > (getRect(this).y + getRect(this).height) || (otherObject.y + otherObject.height) < getRect(this).y);
+                return !(getRect(otherObject).x > (getRect(this).x + getRect(this).width) || (getRect(otherObject).x + getRect(otherObject).width) < getRect(this).x || getRect(otherObject).y > (getRect(this).y + getRect(this).height) || (getRect(otherObject).y + getRect(otherObject).height) < getRect(this).y);
             },
             groupSprite: [{
                 x: 2,
@@ -87,60 +87,7 @@
                     jumpVal *= longpress;
                 }
             }
-        },
-        gameOver = function() {
-            gamePaused = true;
-            allEnemyArray = [];
-            allSpriteArray = [];
-            clearInterval(gameTimer);
-            clearTimeout(enemyTimer);
-        },
-        update = function(mod) {
-            if (38 in keysDown) {
-                jump();
-            }
-            jumpVal += mySprite.speed;
-            if (jumpVal > enemyHeightConst / 5) {
-                jumpVal = enemyHeightConst / 5;
-            }
-            if ((getRect(mySprite).y + jumpVal) > canvas.height - getRect(mySprite).height - plateformConst) {
-                touching = true;
-                mySprite.y = canvas.height - getRect(mySprite).height + (mySprite.y - getRect(mySprite).y) - plateformConst;
-            } else if (!touching) {
-                mySprite.y += jumpVal;
-            }
-            for (var i = allEnemyArray.length - 1; i >= 0; i--) {
-                var enemy = allEnemyArray[i];
-                enemy.x -= enemy.speed * mod;
-                if (mySprite.intersects(enemy)) {
-                    gameOver();
-                }
-                if (enemy.x < 0) {
-                    score++;
-                    removeFromArray(enemy, allSpriteArray);
-                    removeFromArray(enemy, allEnemyArray);
-                }
-            }
-        },
-        makeEnemy = function() {
-            var startXpos = canvas.width,
-                height = (Math.random() * enemyHeightConst) + 10,
-                enemy = {
-                    x: startXpos,
-                    y: canvas.height - plateformConst - height,
-                    width: 10,
-                    height: height,
-                    speed: 200,
-                    color: '#c00'
-                };
-
-            allEnemyArray.push(enemy);
-            allSpriteArray.push(enemy);
-
-            if (!gamePaused) {
-                enemyTimer = setTimeout(makeEnemy, (1000 * Math.random()) + 700);
-            }
-        },
+        },        
         createSprite = function(sprite) {
             ctx.fillStyle = sprite.color;
             ctx.fillRect(getRect(sprite).x, getRect(sprite).y, getRect(sprite).width, getRect(sprite).height);
@@ -196,6 +143,30 @@
                 height: height
             };
         },
+        makeEnemy = function() {
+            var startXpos = canvas.width,
+                height = 30,
+                enemy = {
+                    x: startXpos,
+                    y: canvas.height - plateformConst,
+                    width: 10,
+                    height: height,
+                    speed: 200,
+                    scale: {
+                        x: 1.0,
+                        y: (Math.random() * 3.0) + 1.0
+                    },
+                    anchorpoint:{x:0.0,y:1.0},
+                    color: '#c00',                    
+                };
+
+            allEnemyArray.push(enemy);
+            allSpriteArray.push(enemy);
+
+            if (!gamePaused) {
+                enemyTimer = setTimeout(makeEnemy, (1000 * Math.random()) + 700);
+            }
+        },
         render = function() {
             if (!gamePaused) {
                 var length = allSpriteArray.length,
@@ -216,13 +187,37 @@
                 ctx.fillText("Mouse-click to restart", 100, 70);
             }
         },
+        update = function(mod) {
+            if ((38 in keysDown) || moueDownVal) {
+                jump();
+            }
+            jumpVal += mySprite.speed;
+            if (jumpVal > enemyHeightConst / 5) {
+                jumpVal = enemyHeightConst / 5;
+            }
+            if ((getRect(mySprite).y + jumpVal) > canvas.height - getRect(mySprite).height - plateformConst) {
+                touching = true;
+                mySprite.y = canvas.height - getRect(mySprite).height + (mySprite.y - getRect(mySprite).y) - plateformConst;
+            } else if (!touching) {
+                mySprite.y += jumpVal;
+            }
+            for (var i = allEnemyArray.length - 1; i >= 0; i--) {
+                var enemy = allEnemyArray[i];
+                enemy.x -= enemy.speed * mod;
+                if (mySprite.intersects(enemy)) {
+                    gameOver();
+                }
+                if (enemy.x < 0) {
+                    score++;
+                    removeFromArray(enemy, allSpriteArray);
+                    removeFromArray(enemy, allEnemyArray);
+                }
+            }
+        },
         run = function() {
             update((Date.now() - time) / 1000);
             render();
             time = Date.now();
-            if (moueDownVal) {
-                jump();
-            }
         },
         initMyGame = function() {
             allSpriteArray.push(myBG);
@@ -235,6 +230,13 @@
             score = 0;
             jumpVal = 2;
             gameTimer = setInterval(run, 10);
+        },
+        gameOver = function() {
+            gamePaused = true;
+            allEnemyArray = [];
+            allSpriteArray = [];
+            clearInterval(gameTimer);
+            clearTimeout(enemyTimer);
         },
         removeFromArray = function(obj, arr) {
             return arr.splice(arr.indexOf(obj), 1);
