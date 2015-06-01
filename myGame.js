@@ -1,11 +1,11 @@
 (function() {
     var canvas = document.getElementById('canvas');
-    canvas.width = 320;
-    canvas.height = 420;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     var gamePaused = false,
         score = 0,
-        plateformConst = 30,
-        enemyHeightConst = 60,
+        plateformConst = 200,
+        enemyHeightConst = 100,
         longpress = 0.9,
         longJump = false,
         hiscore = 0,
@@ -20,8 +20,8 @@
         mySprite = {
             x: 20,
             y: 20,
-            scale: 1.0,
-            anchorpoint: 0.0,
+            scale: 2.0,
+            anchorpoint: 1.0,
             width: 10,
             height: 10,
             speed: 0.5,
@@ -94,12 +94,12 @@
                 jump();
             }
             jumpVal += mySprite.speed;
-            if (jumpVal > enemyHeightConst/5) {
-                jumpVal = enemyHeightConst/5;
+            if (jumpVal > enemyHeightConst / 5) {
+                jumpVal = enemyHeightConst / 5;
             }
             if ((getRect(mySprite).y + jumpVal) > canvas.height - getRect(mySprite).height - plateformConst) {
                 touching = true;
-                mySprite.y = canvas.height - getRect(mySprite).height +(mySprite.y-getRect(mySprite).y)- plateformConst;
+                mySprite.y = canvas.height - getRect(mySprite).height + (mySprite.y - getRect(mySprite).y) - plateformConst;
             } else if (!touching) {
                 mySprite.y += jumpVal;
             }
@@ -119,7 +119,7 @@
         },
         makeEnemy = function() {
             var startXpos = canvas.width,
-                height = (Math.random() * enemyHeightConst) + plateformConst,
+                height = (Math.random() * enemyHeightConst)+10,
                 enemy = {
                     x: startXpos,
                     y: canvas.height - plateformConst - height,
@@ -133,7 +133,7 @@
             allSpriteArray.push(enemy);
 
             if (!gamePaused) {
-                enemyTimer = setTimeout(makeEnemy, (1000 * Math.random()) + 200);
+                enemyTimer = setTimeout(makeEnemy, (1000 * Math.random()) + 700);
             }
         },
         createSprite = function(sprite) {
@@ -167,12 +167,12 @@
             var width = sprite.width * scale,
                 height = sprite.height * scale;
             return {
-                x: sprite.x + (((width/100) * anchorpoint))*100,
-                y: sprite.y - (((height/100) * anchorpoint))*100,
+                x: sprite.x + (((width) * anchorpoint)),
+                y: sprite.y - (((height) * anchorpoint)),
                 width: width,
                 height: height
             };
-        },        
+        },
         render = function() {
             if (!gamePaused) {
                 var length = allSpriteArray.length,
@@ -215,7 +215,26 @@
         },
         removeFromArray = function(obj, arr) {
             return arr.splice(arr.indexOf(obj), 1);
+        },
+        mouseDown = function() {
+            if (gamePaused) {
+                gamePaused = false;
+                initMyGame();
+            } else {
+                moueDownVal = true;
+            }
+        },
+        mouseUp = function() {
+            longpress = 1.0;
+            longJump = false;
+            moueDownVal = false;
         };
+    window.addEventListener('touchend', function() {
+        mouseUp();
+    });
+    window.addEventListener('touchstart', function() {
+        mouseDown();
+    });
     window.addEventListener('keydown', function(e) {
         if (gamePaused && (e.keyCode === 32)) {
             gamePaused = false;
@@ -225,17 +244,10 @@
         }
     });
     window.addEventListener('mousedown', function() {
-        if (gamePaused) {
-            gamePaused = false;
-            initMyGame();
-        } else {
-            moueDownVal = true;
-        }
+        mouseDown();
     });
     window.addEventListener('mouseup', function() {
-        longpress = 1.0;
-        longJump = false;
-        moueDownVal = false;
+        mouseUp();
     });
     window.addEventListener('keyup', function(e) {
         longpress = 1.0;

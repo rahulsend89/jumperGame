@@ -1,11 +1,23 @@
 <html>
+
 <head>
-	<meta name="viewport" content="width=device-width" />
-	<title>testGame</title>
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>testGame</title>
+    <script type="text/javascript">
+    function blockMove() {
+        event.preventDefault();
+    }
+    </script>
 </head>
-<body>
-<canvas id="canvas"></canvas>
-<script src="min/myGame-min.js">
-</script>
+
+<body style="margin:0;padding:0" ontouchmove="blockMove()">
+    <canvas id="canvas"></canvas>
+    <script src="min/myGame-min.js">
+    document.ontouchmove = function(e) {
+        e.preventDefault();
+    }
+    </script>
 </body>
+
 </html>
